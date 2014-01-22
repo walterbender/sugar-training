@@ -54,6 +54,20 @@ class ShellService(dbus.service.Object):
     @dbus.service.method(_DBUS_SHELL_IFACE,
                          in_signature='', out_signature='i')
     def GetZoomLevel(self):
-        """Set Zoom Level of Sugar Shell
+        """Get Zoom Level of Sugar Shell
         """
         return self._shell_model.get_zoom_level()
+
+    @dbus.service.method(_DBUS_SHELL_IFACE,
+                         in_signature='', out_signature='b')
+    def IsJournal(self):
+        """Is the current activity the Journal?
+        """
+        return self._shell_model.is_journal()
+
+    @dbus.service.method(_DBUS_SHELL_IFACE,
+                         in_signature='', out_signature='s')
+    def GetActivityName(self):
+        """Is the current activity the Journal?
+        """
+        return self._shell_model.get_activity_name()
