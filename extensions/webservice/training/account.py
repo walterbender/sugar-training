@@ -18,11 +18,13 @@ import logging
 
 from jarabe.webservice import account
 
+from service import ShellService
 
 class Account(account.Account):
 
     def __init__(self):
         logging.info('loading training extension')
+        self._service = ShellService()
 
     def get_token_state(self):
         return self.STATE_VALID
