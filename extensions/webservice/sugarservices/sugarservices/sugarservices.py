@@ -23,6 +23,7 @@ import logging
 
 from jarabe import config
 from jarabe.model import shell
+from jarabe.model import session
 from jarabe.model import network
 from jarabe.journal import journalactivity
 from jarabe.webservice.accountsmanager import get_webaccount_services
@@ -66,7 +67,7 @@ class SugarServices(dbus.service.Object):
     '''
 
     def __init__(self):
-        self._version = 2
+        self._version = 4
 
         bus = dbus.SessionBus()
         bus_name = dbus.service.BusName(_DBUS_SERVICE, bus=bus)
@@ -76,6 +77,11 @@ class SugarServices(dbus.service.Object):
             self._shell_model = shell.get_model()
         except Exception, e:
             logging.error('Problem getting shell model: %s' % e)
+
+        try:
+            self._session = session.get_session_manager()
+        except Exception, e:
+            logging.error('Problem getting session manager: %s' % e)
 
         try:
             self._journal = journalactivity.get_journal()
@@ -104,6 +110,13 @@ class SugarServices(dbus.service.Object):
         '''Get version number of SugarServices
         '''
         return self._version
+
+    @dbus.service.method(_DBUS_SHELL_IFACE,
+                         in_signature='', out_signature='')
+    def Reboot(self):
+        '''Reboot Sugar
+        '''
+        self._session.reboot()
 
     @dbus.service.method(_DBUS_SHELL_IFACE,
                          in_signature='i', out_signature='')
@@ -156,6 +169,17 @@ class SugarServices(dbus.service.Object):
         return True
 
     @dbus.service.method(_DBUS_SHELL_IFACE,
+                         in_signature='', out_signature='s')
+    def Dump(self):
+        '''Dump the uitree
+        '''
+        logging.error('DUMP')
+        uiroot = uitree.get_root()
+        result = uiroot.dump()
+        logging.error(results)
+        return json.dumps(result)
+
+    @dbus.service.method(_DBUS_SHELL_IFACE,
                          in_signature='s', out_signature='b')
     def FindChild(self, target):
         '''Find a child in the uitree
@@ -163,6 +187,19 @@ class SugarServices(dbus.service.Object):
         uiroot = uitree.get_root()
         node = uiroot.find_child(name=target)
         return node is not None
+
+    @dbus.service.method(_DBUS_SHELL_IFACE,
+                         in_signature='s', out_signature='b')
+    def Click(self, target):
+        '''Find a child in the uitree and 'click'
+        '''
+        uiroot = uitree.get_root()
+        node = uiroot.find_child(name=target)
+        if node is not None:
+            node.do_action('click')
+            return True
+        else:
+            return False
 
     @dbus.service.method(_DBUS_SHELL_IFACE,
                          in_signature='', out_signature='s')
